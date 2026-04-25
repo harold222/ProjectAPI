@@ -1,0 +1,98 @@
+@baseUrl = http://localhost:5002
+
+###############################################################################
+### CUSTOMER
+###############################################################################
+
+### Get All Customers
+GET {{baseUrl}}/Customer
+
+### Create Customer
+POST {{baseUrl}}/Customer
+Content-Type: application/json
+
+{
+  "Name": "harold"
+}
+
+### Create All Customers
+POST {{baseUrl}}/Customer/CreateAll
+Content-Type: application/json
+
+[
+  {
+    "Name": "HAROLD"
+  },
+  {
+    "Name": "harold3"
+  },
+  {
+    "Name": "harold2"
+  },
+  {
+    "Name": "harold4"
+  }
+]
+
+### Update Customer
+PUT {{baseUrl}}/Customer
+Content-Type: application/json
+
+{
+  "Id": 3002,
+  "Name": "HAROLDd"
+}
+
+### Delete Customer
+DELETE {{baseUrl}}/Customer/1002
+
+###############################################################################
+### POSTS
+###############################################################################
+
+### Get All Posts
+GET {{baseUrl}}/Post
+
+### Create Post
+POST {{baseUrl}}/Post
+Content-Type: application/json
+
+{
+  "title": "tester",
+  "body": "aca una prueba 2",
+  "CategoryId": 2,
+  "customerId": 4
+}
+
+### Create All Posts
+POST {{baseUrl}}/Post/CreateAll
+Content-Type: application/json
+
+[
+  {
+    "title": "tester",
+    "body": "aca una prueba 4",
+    "CategoryId": 1,
+    "customerId": 4
+  },
+  {
+    "title": "tester",
+    "body": "aca una prueba 4",
+    "CustomCategory": "nueva categoria",
+    "customerId": 4
+  }
+]
+
+### Update Post
+PUT {{baseUrl}}/Post
+Content-Type: application/json
+
+{
+  "id": 4,
+  "title": "tester 8",
+  "body": "aca una prueba 8",
+  "categoryId": 2
+}
+
+### Delete Post
+DELETE {{baseUrl}}/Post/1

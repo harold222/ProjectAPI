@@ -1,0 +1,59 @@
+# .NET
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+[Aa][Rr][Mm]/
+artifacts/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# NuGet
+*.nupkg
+.nuget/
+packages/
+project.lock.json
+project.fragment.lock.json
+project.assets.json
+
+# IDE
+.vs/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+build/
+bld/
+[Bb]in[Dd]ebug/
+[Rr]elease[Dd]ebug/
+
+# Rider
+.idea/
+
+# Test Results
+TestResults/
+*.trx
+coverage/
+*.coverage
+*.coveragexml
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Infrastructure
+appsettings.*.json
+!appsettings.json
+!appsettings.*.example.json
