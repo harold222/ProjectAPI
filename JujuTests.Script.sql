@@ -49,12 +49,14 @@ SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[Customer](
 	[CustomerId] [int] IDENTITY(1,1) NOT NULL,
-	[Name] [nvarchar](500) NULL,
+	[Name] [nvarchar](500) NOT NULL,
 PRIMARY KEY CLUSTERED
 (
 	[CustomerId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
+GO
+CREATE UNIQUE INDEX [IX_Customer_Name] ON [dbo].[Customer] ([Name] ASC)
 GO
 /****** Object:  Table [dbo].[Logs]    Script Date: 6/02/2023 2:53:36 p. m. ******/
 SET ANSI_NULLS ON

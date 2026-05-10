@@ -1,4 +1,5 @@
 using Domain;
+using Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data;
@@ -61,4 +62,48 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
     }
 
     public virtual async Task SaveChangesAsync() => await _context.SaveChangesAsync();
+
+    protected async Task<(TEntity entity, bool changed)> CreateOrThrowAsync(TEntity entity)
+    {
+        try
+        {
+            await _dbSet.AddAsync(entity);
+            await _context.SaveChangesAsync();
+            return (entity, true);
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            var name = GetEntityName(entity);
+            throw new DuplicateNameException(name);
+        }
+    }
+
+    protected async Task<List<TEntity>> CreateAllOrThrowAsync(List<TEntity> entities)
+    {
+        try
+        {
+            await _dbSet.AddRangeAsync(entities);
+            await _context.SaveChangesAsync();
+            return entities;
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            var name = GetEntityName(entities.First());
+            throw new DuplicateNameException(name);
+        }
+    }
+
+    private static bool IsUniqueConstraintViolation(DbUpdateException ex)
+    {
+        // SQL Server unique constraint violations: error 2601 or 2627
+        var message = ex.InnerException?.Message ?? string.Empty;
+        return message.Contains("2601") || message.Contains("2627");
+    }
+
+    private static string GetEntityName(TEntity entity)
+    {
+        // Try to get Name property via reflection
+        var nameProperty = entity.GetType().GetProperty("Name");
+        return nameProperty?.GetValue(entity)?.ToString() ?? "unknown";
+    }
 }

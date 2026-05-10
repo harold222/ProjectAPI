@@ -1,6 +1,6 @@
 using Application.DTOs;
-using Application.Shared;
 using Domain.Entities;
+using Domain.Exceptions;
 
 namespace Application.Services;
 
@@ -24,16 +24,17 @@ public class CustomerAppService
         if (string.IsNullOrWhiteSpace(dto.Name))
             throw new InvalidOperationException("El nombre no puede estar vacío");
 
-        var existingCustomers = await _customerService.GetAllAsync();
-
-        var existingNames = existingCustomers.Select(c => c.Name);
-        if (ValidationService.NameExists(existingNames, dto.Name))
-            throw new InvalidOperationException("El nombre ingresado ya existe");
-
         var entity = new Customer { Name = dto.Name };
-        var created = await _customerService.CreateAsync(entity);
 
-        return MapToResponse(created);
+        try
+        {
+            var created = await _customerService.CreateAsync(entity);
+            return MapToResponse(created);
+        }
+        catch (DuplicateNameException)
+        {
+            throw new InvalidOperationException("El nombre ingresado ya existe");
+        }
     }
 
     public async Task<CustomerDto.CreateAllResult> CreateAllAsync(IEnumerable<CustomerDto.Create> dtos)
@@ -43,9 +44,6 @@ public class CustomerAppService
         var dtoList = dtos.ToList();
         if (dtoList.Count == 0)
             return result;
-
-        var existingCustomers = await _customerService.GetAllAsync();
-        var existingNames = existingCustomers.Select(c => c.Name);
 
         var namesToCheck = new List<string>();
 
@@ -73,16 +71,6 @@ public class CustomerAppService
                 continue;
             }
 
-            if (ValidationService.NameExists(existingNames, dto.Name))
-            {
-                result.Failed.Add(new CustomerDto.FailedItem
-                {
-                    Name = originalName,
-                    Reason = "Ya existe un cliente con ese nombre",
-                });
-                continue;
-            }
-
             namesToCheck.Add(dto.Name);
             result.Created.Add(new CustomerDto.Response
             {
@@ -95,11 +83,24 @@ public class CustomerAppService
             return result;
 
         var entitiesToCreate = result.Created.Select(c => new Customer { Name = c.Name }).ToList();
-        var created = await _customerService.CreateAllAsync(entitiesToCreate);
 
-        for (int i = 0; i < result.Created.Count; i++)
+        try
         {
-            result.Created[i].Id = created[i].CustomerId;
+            var created = await _customerService.CreateAllAsync(entitiesToCreate);
+
+            for (int i = 0; i < result.Created.Count; i++)
+            {
+                result.Created[i].Id = created[i].CustomerId;
+            }
+        }
+        catch (DuplicateNameException)
+        {
+            result.Failed.AddRange(result.Created.Select(c => new CustomerDto.FailedItem
+            {
+                Name = c.Name,
+                Reason = "Ya existe un cliente con ese nombre",
+            }));
+            result.Created.Clear();
         }
 
         return result;
@@ -110,21 +111,18 @@ public class CustomerAppService
         if (string.IsNullOrWhiteSpace(dto.Name))
             throw new InvalidOperationException("El nombre no puede estar vacío");
 
-        var existingCustomers = await _customerService.GetAllAsync();
-
-        var existingNames = existingCustomers.Where(c => c.CustomerId != dto.Id).Select(c => c.Name);
-        if (ValidationService.NameExists(existingNames, dto.Name))
-            throw new InvalidOperationException("El nombre ingresado ya existe");
-
         var entity = new Customer { CustomerId = dto.Id, Name = dto.Name };
         var (updated, changed) = await _customerService.UpdateAsync(dto.Id, entity);
+
+        if (!changed)
+            throw new KeyNotFoundException($"Customer Id {dto.Id} no encontrado");
 
         return MapToResponse(updated);
     }
 
     public async Task<CustomerDto.DeleteResponse> DeleteAsync(int id)
     {
-        var response = new CustomerDto.DeleteResponse(){ Status = false };
+        var response = new CustomerDto.DeleteResponse() { Status = false };
 
         var customer = await _customerService.GetAsync(id);
 

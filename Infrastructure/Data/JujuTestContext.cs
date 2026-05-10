@@ -26,7 +26,8 @@ public class JujuTestContext : DbContext
         modelBuilder.Entity<Customer>(entity =>
         {
             entity.HasKey(e => e.CustomerId);
-            entity.Property(e => e.Name).HasMaxLength(500);
+            entity.Property(e => e.Name).HasMaxLength(500).IsRequired();
+            entity.HasIndex(e => e.Name).IsUnique();
         });
 
         modelBuilder.Entity<Logs>(entity =>
