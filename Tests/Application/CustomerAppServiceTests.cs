@@ -103,7 +103,7 @@ public class CustomerAppServiceTests
     public async Task CreateAllAsync_WhenDuplicateNameException_AddsAllToFailed()
     {
         var dtos = new List<CustomerDto.Create> { new() { Name = "Alice" } };
-        var entities = new List<Customer> { Customer.Create("Alice") };
+
         _repoMock.Setup(r => r.CreateAllOrThrowAsync(It.IsAny<List<Customer>>()))
                  .ThrowsAsync(new DuplicateNameException("duplicado"));
 
