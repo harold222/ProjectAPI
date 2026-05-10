@@ -63,7 +63,7 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
 
     public virtual async Task SaveChangesAsync() => await _context.SaveChangesAsync();
 
-    protected async Task<(TEntity entity, bool changed)> CreateOrThrowAsync(TEntity entity)
+    public async Task<(TEntity entity, bool changed)> CreateOrThrowAsync(TEntity entity)
     {
         try
         {
@@ -78,7 +78,7 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
         }
     }
 
-    protected async Task<List<TEntity>> CreateAllOrThrowAsync(List<TEntity> entities)
+    public async Task<List<TEntity>> CreateAllOrThrowAsync(List<TEntity> entities)
     {
         try
         {

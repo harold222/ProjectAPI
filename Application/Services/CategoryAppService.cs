@@ -47,7 +47,7 @@ public class CategoryAppService
         if (categoryName.Length > 200)
             throw new InvalidOperationException("CustomCategory no puede exceder 200 caracteres");
 
-        var entity = new Category { CategoryName = categoryName };
+        var entity = Category.Create(categoryName);
         var created = await _categoryService.CreateAsync(entity);
 
         return new CategoryDto.Response

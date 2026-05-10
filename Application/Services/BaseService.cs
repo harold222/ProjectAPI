@@ -17,6 +17,9 @@ public class BaseService<TEntity> where TEntity : class, new()
 
     public virtual Task<TEntity> CreateAsync(TEntity entity) => _repository.CreateAsync(entity);
 
+    public virtual Task<(TEntity entity, bool changed)> CreateOrThrowAsync(TEntity entity) => _repository.CreateOrThrowAsync(entity);
+    public virtual Task<List<TEntity>> CreateAllOrThrowAsync(List<TEntity> entities) => _repository.CreateAllOrThrowAsync(entities);
+
     public virtual Task<List<TEntity>> CreateAllAsync(List<TEntity> entities) => _repository.CreateAllAsync(entities);
 
     public virtual async Task<(TEntity entity, bool changed)> UpdateAsync(object id, TEntity editedEntity)

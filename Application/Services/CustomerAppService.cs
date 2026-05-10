@@ -21,20 +21,10 @@ public class CustomerAppService
 
     public async Task<CustomerDto.Response> CreateAsync(CustomerDto.Create dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Name))
-            throw new InvalidOperationException("El nombre no puede estar vacío");
+        var entity = Customer.Create(dto.Name);
 
-        var entity = new Customer { Name = dto.Name };
-
-        try
-        {
-            var created = await _customerService.CreateAsync(entity);
-            return MapToResponse(created);
-        }
-        catch (DuplicateNameException)
-        {
-            throw new InvalidOperationException("El nombre ingresado ya existe");
-        }
+        var created = await _customerService.CreateOrThrowAsync(entity);
+        return MapToResponse(created.entity);
     }
 
     public async Task<CustomerDto.CreateAllResult> CreateAllAsync(IEnumerable<CustomerDto.Create> dtos)
@@ -82,11 +72,11 @@ public class CustomerAppService
         if (result.Created.Count == 0)
             return result;
 
-        var entitiesToCreate = result.Created.Select(c => new Customer { Name = c.Name }).ToList();
+        var entitiesToCreate = result.Created.Select(c => Customer.Create(c.Name)).ToList();
 
         try
         {
-            var created = await _customerService.CreateAllAsync(entitiesToCreate);
+            var created = await _customerService.CreateAllOrThrowAsync(entitiesToCreate);
 
             for (int i = 0; i < result.Created.Count; i++)
             {
@@ -108,10 +98,7 @@ public class CustomerAppService
 
     public async Task<CustomerDto.Response> UpdateAsync(CustomerDto.Update dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Name))
-            throw new InvalidOperationException("El nombre no puede estar vacío");
-
-        var entity = new Customer { CustomerId = dto.Id, Name = dto.Name };
+        Customer entity = Customer.Create(dto.Id, dto.Name);
         var (updated, changed) = await _customerService.UpdateAsync(dto.Id, entity);
 
         if (!changed)

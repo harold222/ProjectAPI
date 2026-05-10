@@ -35,13 +35,13 @@ public class PostAppService
 
         var (categoryId, categoryName) = await _categoryAppService.ResolveOrCreateAsync(dto.CategoryId, dto.CustomCategory);
 
-        var entity = new Post
-        {
-            Title = dto.Title?.Trim() ?? string.Empty,
-            Body = FormatBody(dto.Body),
-            CategoryId = categoryId,
-            CustomerId = dto.CustomerId
-        };
+        var entity = Post.Create(
+            default,
+            dto.Title?.Trim() ?? string.Empty,
+            FormatBody(dto.Body),
+            dto.CustomerId,
+            categoryId
+        );
 
         var created = await _postService.CreateAsync(entity);
 
@@ -110,13 +110,15 @@ public class PostAppService
         if (result.Created.Count == 0)
             return result;
 
-        var entitiesToCreate = result.Created.Select(p => new Post
-        {
-            Title = p.Title,
-            Body = p.Body,
-            CategoryId = p.CategoryId,
-            CustomerId = p.CustomerId
-        }).ToList();
+        var entitiesToCreate = result.Created.Select(p => 
+            Post.Create(
+                default,
+                p.Title,
+                p.Body,
+                p.CustomerId,
+                p.CategoryId
+            )
+        ).ToList();
 
         var created = await _postService.CreateAllAsync(entitiesToCreate);
 
@@ -142,14 +144,13 @@ public class PostAppService
 
         (categoryId, categoryName) = await _categoryAppService.ResolveOrCreateAsync(dto.CategoryId, dto.CustomCategory);
 
-        var entity = new Post
-        {
-            PostId = dto.Id,
-            Title = dto.Title?.Trim() ?? string.Empty,
-            Body = body,
-            CategoryId = categoryId,
-            CustomerId = existingPost.CustomerId
-        };
+        var entity = Post.Create(
+            dto.Id,
+            dto.Title?.Trim() ?? string.Empty,
+            body,
+            existingPost.CustomerId,
+            categoryId
+        );
 
         var (updated, changed) = await _postService.UpdateAsync(dto.Id, entity);
 
