@@ -1,7 +1,7 @@
 using Application.DTOs;
 using Application.Shared;
 using Domain.Entities;
-using Microsoft.EntityFrameworkCore;
+
 namespace Application.Services;
 
 public class CustomerAppService
@@ -15,7 +15,7 @@ public class CustomerAppService
 
     public async Task<IEnumerable<CustomerDto.Response>> GetAllAsync()
     {
-        var customers = await _customerService.GetAll().ToListAsync();
+        var customers = await _customerService.GetAllAsync();
         return customers.Select(MapToResponse);
     }
 
@@ -24,7 +24,7 @@ public class CustomerAppService
         if (string.IsNullOrWhiteSpace(dto.Name))
             throw new InvalidOperationException("El nombre no puede estar vacío");
 
-        var existingCustomers = await _customerService.GetAll().ToListAsync();
+        var existingCustomers = await _customerService.GetAllAsync();
 
         if (ValidationService.CustomerNameExists(existingCustomers, dto.Name))
             throw new InvalidOperationException("El nombre ingresado ya existe");
@@ -43,7 +43,7 @@ public class CustomerAppService
         if (dtoList.Count == 0)
             return result;
 
-        var existingCustomers = await _customerService.GetAll().ToListAsync();
+        var existingCustomers = await _customerService.GetAllAsync();
 
         var namesToCheck = new List<string>();
 
@@ -97,7 +97,7 @@ public class CustomerAppService
 
         for (int i = 0; i < result.Created.Count; i++)
         {
-            result.Created[i].Id = created.ElementAt(i).CustomerId;
+            result.Created[i].Id = created[i].CustomerId;
         }
 
         return result;
@@ -108,7 +108,7 @@ public class CustomerAppService
         if (string.IsNullOrWhiteSpace(dto.Name))
             throw new InvalidOperationException("El nombre no puede estar vacío");
 
-        var existingCustomers = await _customerService.GetAll().ToListAsync();
+        var existingCustomers = await _customerService.GetAllAsync();
 
         if (ValidationService.CustomerNameExists(existingCustomers, dto.Name, dto.Id))
             throw new InvalidOperationException("El nombre ingresado ya existe");

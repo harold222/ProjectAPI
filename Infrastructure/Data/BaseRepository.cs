@@ -14,7 +14,7 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
         _dbSet = context.Set<TEntity>();
     }
 
-    public virtual IQueryable<TEntity> GetAll => _dbSet;
+    public virtual async Task<List<TEntity>> GetAllAsync() => await _dbSet.ToListAsync();
 
     public virtual async Task<TEntity> GetAsync(object id) => await _dbSet.FindAsync(id);
 
@@ -52,7 +52,13 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
         return entity;
     }
 
-    public virtual async Task<int> DeleteAllAsync(IQueryable<TEntity> entities) => await entities.ExecuteDeleteAsync();
+    public virtual async Task<int> DeleteAllAsync(List<TEntity> entities)
+    {
+        _dbSet.RemoveRange(entities);
+        await _context.SaveChangesAsync();
+
+        return entities.Count;
+    }
 
     public virtual async Task SaveChangesAsync() => await _context.SaveChangesAsync();
 }

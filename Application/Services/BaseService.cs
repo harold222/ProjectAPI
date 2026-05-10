@@ -13,7 +13,7 @@ public class BaseService<TEntity> where TEntity : class, new()
 
     public virtual Task<TEntity> GetAsync(object id) => _repository.GetAsync(id);
 
-    public virtual IQueryable<TEntity> GetAll() => _repository.GetAll;
+    public virtual Task<List<TEntity>> GetAllAsync() => _repository.GetAllAsync();
 
     public virtual Task<TEntity> CreateAsync(TEntity entity) => _repository.CreateAsync(entity);
 
@@ -31,7 +31,7 @@ public class BaseService<TEntity> where TEntity : class, new()
 
     public virtual Task<TEntity> DeleteAsync(TEntity entity) => _repository.DeleteAsync(entity);
 
-    public virtual Task<int> DeleteAllAsync(IQueryable<TEntity> entities) => _repository.DeleteAllAsync(entities);
+    public virtual Task<int> DeleteAllAsync(List<TEntity> entities) => _repository.DeleteAllAsync(entities);
 
     public virtual Task SaveChangesAsync() => _repository.SaveChangesAsync();
 }

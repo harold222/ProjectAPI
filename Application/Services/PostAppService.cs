@@ -1,6 +1,5 @@
 using Application.DTOs;
 using Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services;
 
@@ -23,7 +22,7 @@ public class PostAppService
 
     public async Task<IEnumerable<PostDto.Response>> GetAllAsync()
     {
-        var posts = await _postService.GetAll().ToListAsync();
+        var posts = await _postService.GetAllAsync();
         return posts.Select(MapToResponse);
     }
 
@@ -64,7 +63,7 @@ public class PostAppService
         if (dtoList.Count == 0)
             return result;
 
-        var existingCustomers = await _customerService.GetAll().ToListAsync();
+        var existingCustomers = await _customerService.GetAllAsync();
         var existingCustomerIds = existingCustomers.Select(c => c.CustomerId).ToHashSet();
 
         foreach (var dto in dtoList)
@@ -123,7 +122,7 @@ public class PostAppService
 
         for (int i = 0; i < result.Created.Count; i++)
         {
-            result.Created[i].Id = created.ElementAt(i).PostId;
+            result.Created[i].Id = created[i].PostId;
         }
 
         return result;
