@@ -32,56 +32,42 @@ public class CustomerAppService
         var result = new CustomerDto.CreateAllResult();
 
         var dtoList = dtos.ToList();
+
         if (dtoList.Count == 0)
             return result;
 
-        var namesToCheck = new List<string>();
+        List<Customer> entitiesToCreate = new();
 
         foreach (var dto in dtoList)
         {
             var originalName = dto.Name;
 
-            if (string.IsNullOrWhiteSpace(dto.Name))
+            try
+            {
+                entitiesToCreate.Add(Customer.Create(0, dto.Name));
+            }
+            catch (ArgumentException)
             {
                 result.Failed.Add(new CustomerDto.FailedItem
                 {
                     Name = originalName,
                     Reason = "El nombre no puede estar vacío",
                 });
-                continue;
             }
-
-            if (namesToCheck.Contains(dto.Name, StringComparer.OrdinalIgnoreCase))
-            {
-                result.Failed.Add(new CustomerDto.FailedItem
-                {
-                    Name = originalName,
-                    Reason = "Nombre duplicado en la lista de entrada",
-                });
-                continue;
-            }
-
-            namesToCheck.Add(dto.Name);
-            result.Created.Add(new CustomerDto.Response
-            {
-                Id = 0,
-                Name = dto.Name
-            });
         }
 
-        if (result.Created.Count == 0)
+        if (entitiesToCreate.Count == 0)
             return result;
-
-        var entitiesToCreate = result.Created.Select(c => Customer.Create(c.Name)).ToList();
 
         try
         {
             var created = await _customerService.CreateAllOrThrowAsync(entitiesToCreate);
 
-            for (int i = 0; i < result.Created.Count; i++)
+            result.Created = created.Select(c => new CustomerDto.Response
             {
-                result.Created[i].Id = created[i].CustomerId;
-            }
+                Id = c.CustomerId,
+                Name = c.Name
+            }).ToList();
         }
         catch (DuplicateNameException)
         {

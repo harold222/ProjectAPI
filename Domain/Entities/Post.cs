@@ -14,16 +14,24 @@ public class Post
     {
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException("El título no puede estar vacío");
+
         if (string.IsNullOrWhiteSpace(body))
             throw new ArgumentException("El body no puede estar vacío");
+
         if (customerId <= 0)
             throw new ArgumentException("El customerId debe ser mayor a 0");
+
+
+        var fixBody = body.Trim();
+
+        if (fixBody.Length > 20)
+            fixBody = fixBody.Substring(0, 97) + "...";
 
         return new Post
         {
             PostId = postId,
             Title = title,
-            Body = body,
+            Body = fixBody,
             CustomerId = customerId,
             CategoryId = categoryId
         };

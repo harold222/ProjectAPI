@@ -71,6 +71,10 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
             await _context.SaveChangesAsync();
             return (entity, true);
         }
+        catch (DbUpdateException ex) when (IsForeignKeyViolation(ex))
+        {
+            throw new ForeignKeyViolationException(GetEntityName(entity));
+        }
         catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
         {
             var name = GetEntityName(entity);
@@ -86,6 +90,10 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
             await _context.SaveChangesAsync();
             return entities;
         }
+        catch (DbUpdateException ex) when (IsForeignKeyViolation(ex))
+        {
+            throw new ForeignKeyViolationException(GetEntityName(entities.First()));
+        }
         catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
         {
             var name = GetEntityName(entities.First());
@@ -95,9 +103,16 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
 
     private static bool IsUniqueConstraintViolation(DbUpdateException ex)
     {
-        // SQL Server unique constraint violations: error 2601 or 2627
         var message = ex.InnerException?.Message ?? string.Empty;
         return message.Contains("2601") || message.Contains("2627");
+    }
+
+    private static bool IsForeignKeyViolation(DbUpdateException ex)
+    {
+        if (ex?.InnerException?.Message != null && !ex.InnerException.Message.Contains("547"))
+            return false;
+
+        return true;    
     }
 
     private static string GetEntityName(TEntity entity)

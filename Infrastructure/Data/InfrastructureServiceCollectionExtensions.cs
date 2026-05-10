@@ -21,7 +21,6 @@ public static class InfrastructureServiceCollectionExtensions
         // Repositorios — implementaciones de IBaseRepository<T> (contrato definido en Domain)
         services.AddScoped<IBaseRepository<Category>, BaseRepository<Category>>();
         services.AddScoped<IBaseRepository<Customer>, BaseRepository<Customer>>();
-        services.AddScoped<IBaseRepository<Post>, BaseRepository<Post>>();
 
         return services;
     }

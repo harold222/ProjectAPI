@@ -1,5 +1,7 @@
 using Application.DTOs;
+using Domain;
 using Domain.Entities;
+using Domain.Exceptions;
 
 namespace Application.Services;
 
@@ -28,31 +30,18 @@ public class PostAppService
 
     public async Task<PostDto.Response> CreateAsync(PostDto.Create dto)
     {
-        var customer = await _customerService.GetAsync(dto.CustomerId);
-
-        if (customer == null)
-            throw new InvalidOperationException("El usuario asociado no existe");
-
         var (categoryId, categoryName) = await _categoryAppService.ResolveOrCreateAsync(dto.CategoryId, dto.CustomCategory);
 
         var entity = Post.Create(
             default,
             dto.Title?.Trim() ?? string.Empty,
-            FormatBody(dto.Body),
+            dto.Body,
             dto.CustomerId,
             categoryId
         );
 
-        var created = await _postService.CreateAsync(entity);
-
-        return new PostDto.Response
-        {
-            Id = created.PostId,
-            Title = created.Title,
-            Body = created.Body,
-            CategoryId = categoryId,
-            CustomerId = created.CustomerId
-        };
+        var created = await _postService.CreateOrThrowAsync(entity);
+        return MapToResponse(created.entity);
     }
 
     public async Task<PostDto.CreateAllResult> CreateAllAsync(IEnumerable<PostDto.Create> dtos)
@@ -63,22 +52,8 @@ public class PostAppService
         if (dtoList.Count == 0)
             return result;
 
-        var existingCustomers = await _customerService.GetAllAsync();
-        var existingCustomerIds = existingCustomers.Select(c => c.CustomerId).ToHashSet();
-
         foreach (var dto in dtoList)
         {
-            if (!existingCustomerIds.Contains(dto.CustomerId))
-            {
-                result.Failed.Add(new PostDto.FailedItem
-                {
-                    Title = dto.Title,
-                    CustomerId = dto.CustomerId,
-                    Reason = "El usuario asociado no existe"
-                });
-                continue;
-            }
-
             int? categoryId;
             string categoryName;
 
@@ -101,7 +76,7 @@ public class PostAppService
             {
                 Id = 0,
                 Title = dto.Title?.Trim() ?? string.Empty,
-                Body = FormatBody(dto.Body),
+                Body = dto.Body,
                 CategoryId = categoryId,
                 CustomerId = dto.CustomerId
             });
@@ -110,21 +85,28 @@ public class PostAppService
         if (result.Created.Count == 0)
             return result;
 
-        var entitiesToCreate = result.Created.Select(p => 
-            Post.Create(
-                default,
-                p.Title,
-                p.Body,
-                p.CustomerId,
-                p.CategoryId
-            )
+        var entitiesToCreate = result.Created.Select(p =>
+            Post.Create(default, p.Title, p.Body, p.CustomerId, p.CategoryId)
         ).ToList();
 
-        var created = await _postService.CreateAllAsync(entitiesToCreate);
-
-        for (int i = 0; i < result.Created.Count; i++)
+        try
         {
-            result.Created[i].Id = created[i].PostId;
+            var created = await _postService.CreateAllOrThrowAsync(entitiesToCreate);
+
+            for (int i = 0; i < result.Created.Count; i++)
+            {
+                result.Created[i].Id = created[i].PostId;
+            }
+        }
+        catch (ForeignKeyViolationException)
+        {
+            result.Failed.AddRange(result.Created.Select(c => new PostDto.FailedItem
+            {
+                Title = c.Title,
+                CustomerId = c.CustomerId,
+                Reason = $"El usuario asociado (CustomerId: {c.CustomerId}) no existe"
+            }));
+            result.Created.Clear();
         }
 
         return result;
@@ -137,8 +119,6 @@ public class PostAppService
         if (existingPost == null)
             throw new KeyNotFoundException($"Post Id {dto.Id} no encontrado");
 
-        var body = FormatBody(dto.Body);
-
         int? categoryId = existingPost.CategoryId;
         string categoryName = existingPost.Category?.CategoryName ?? string.Empty;
 
@@ -147,7 +127,7 @@ public class PostAppService
         var entity = Post.Create(
             dto.Id,
             dto.Title?.Trim() ?? string.Empty,
-            body,
+            dto.Body,
             existingPost.CustomerId,
             categoryId
         );
@@ -176,14 +156,4 @@ public class PostAppService
         CategoryId = post.CategoryId,
         CustomerId = post.CustomerId
     };
-
-    private static string FormatBody(string? body)
-    {
-        var trimmed = body?.Trim() ?? string.Empty;
-
-        if (trimmed.Length <= 20)
-            return trimmed;
-
-        return trimmed.Substring(0, 97) + "...";
-    }
 }
