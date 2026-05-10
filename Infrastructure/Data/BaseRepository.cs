@@ -104,15 +104,17 @@ public class BaseRepository<TEntity> : IBaseRepository<TEntity> where TEntity : 
     private static bool IsUniqueConstraintViolation(DbUpdateException ex)
     {
         var message = ex.InnerException?.Message ?? string.Empty;
-        return message.Contains("2601") || message.Contains("2627");
+        // SQL Server: 2601 / 2627 — SQLite: "UNIQUE constraint failed"
+        return message.Contains("2601") || message.Contains("2627")
+               || message.Contains("UNIQUE constraint failed");
     }
 
     private static bool IsForeignKeyViolation(DbUpdateException ex)
     {
-        if (ex?.InnerException?.Message != null && !ex.InnerException.Message.Contains("547"))
-            return false;
-
-        return true;    
+        var message = ex?.InnerException?.Message;
+        if (message == null) return false;
+        // SQL Server: 547 — SQLite: "FOREIGN KEY constraint failed"
+        return message.Contains("547") || message.Contains("FOREIGN KEY constraint failed");
     }
 
     private static string GetEntityName(TEntity entity)
