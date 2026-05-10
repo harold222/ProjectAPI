@@ -71,7 +71,7 @@ public class CustomerAppService
         }
         catch (DuplicateNameException)
         {
-            result.Failed.AddRange(result.Created.Select(c => new CustomerDto.FailedItem
+            result.Failed.AddRange(entitiesToCreate.Select(c => new CustomerDto.FailedItem
             {
                 Name = c.Name,
                 Reason = "Ya existe un cliente con ese nombre",
