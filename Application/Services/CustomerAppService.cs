@@ -26,7 +26,8 @@ public class CustomerAppService
 
         var existingCustomers = await _customerService.GetAllAsync();
 
-        if (ValidationService.CustomerNameExists(existingCustomers, dto.Name))
+        var existingNames = existingCustomers.Select(c => c.Name);
+        if (ValidationService.NameExists(existingNames, dto.Name))
             throw new InvalidOperationException("El nombre ingresado ya existe");
 
         var entity = new Customer { Name = dto.Name };
@@ -44,6 +45,7 @@ public class CustomerAppService
             return result;
 
         var existingCustomers = await _customerService.GetAllAsync();
+        var existingNames = existingCustomers.Select(c => c.Name);
 
         var namesToCheck = new List<string>();
 
@@ -71,7 +73,7 @@ public class CustomerAppService
                 continue;
             }
 
-            if (ValidationService.CustomerNameExists(existingCustomers, dto.Name))
+            if (ValidationService.NameExists(existingNames, dto.Name))
             {
                 result.Failed.Add(new CustomerDto.FailedItem
                 {
@@ -110,7 +112,8 @@ public class CustomerAppService
 
         var existingCustomers = await _customerService.GetAllAsync();
 
-        if (ValidationService.CustomerNameExists(existingCustomers, dto.Name, dto.Id))
+        var existingNames = existingCustomers.Where(c => c.CustomerId != dto.Id).Select(c => c.Name);
+        if (ValidationService.NameExists(existingNames, dto.Name))
             throw new InvalidOperationException("El nombre ingresado ya existe");
 
         var entity = new Customer { CustomerId = dto.Id, Name = dto.Name };
