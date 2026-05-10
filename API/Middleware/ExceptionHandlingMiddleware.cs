@@ -55,7 +55,7 @@ public class ExceptionHandlingMiddleware
     }
 }
 
-public class ErrorResponse
+public struct ErrorResponse
 {
     public string TraceId { get; set; }
     public int StatusCode { get; set; }
