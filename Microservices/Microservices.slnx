@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/CustomerService/">
+    <Project Path="CustomerService/CustomerService.API/CustomerService.API.csproj" />
+    <Project Path="CustomerService/CustomerService.Application/CustomerService.Application.csproj" />
+    <Project Path="CustomerService/CustomerService.Domain/CustomerService.Domain.csproj" />
+    <Project Path="CustomerService/CustomerService.Infrastructure/CustomerService.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/PostService/">
+    <Project Path="PostService/PostService.API/PostService.API.csproj" />
+    <Project Path="PostService/PostService.Application/PostService.Application.csproj" />
+    <Project Path="PostService/PostService.Domain/PostService.Domain.csproj" />
+    <Project Path="PostService/PostService.Infrastructure/PostService.Infrastructure.csproj" />
+  </Folder>
+  <Project Path="Shared/Shared.csproj" />
+</Solution>
